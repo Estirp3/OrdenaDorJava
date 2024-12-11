@@ -1,0 +1,31 @@
+# Java-specific ignores
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven-specific ignores
+target/
+!**/src/main/**
+!**/src/test/**
+
+# IntelliJ IDEA-specific ignores
+.idea/
+*.iml
+out/
+
+# macOS-specific ignores
+.DS_Store
+
+# Logs
+*.log
+
+# Temp files
+*.tmp
+*.temp
+
+# System files
+Thumbs.db
+
+# Environment files
+.env
