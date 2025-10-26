@@ -1,4 +1,4 @@
-package org.example;
+package org.pcr;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
