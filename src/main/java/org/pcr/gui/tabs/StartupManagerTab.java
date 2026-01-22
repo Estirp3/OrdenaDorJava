@@ -19,6 +19,7 @@ public class StartupManagerTab extends VBox {
     private TableView<StartupItem> startupTable;
     private Label statusLabel;
     private ToggleButton fastBootToggle;
+    private Label fastBootStateBadge;
 
     public StartupManagerTab() {
         setSpacing(15);
@@ -53,7 +54,7 @@ public class StartupManagerTab extends VBox {
     private HBox createFastBootSection() {
         HBox box = new HBox(15);
         box.setAlignment(Pos.CENTER_LEFT);
-        box.setStyle("-fx-background-color: #2b2b2b; -fx-padding: 15; -fx-background-radius: 5;");
+        box.getStyleClass().add("card-pane");
 
         Label label = new Label("Inicio Rápido (Fast Boot):");
         label.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
@@ -61,11 +62,26 @@ public class StartupManagerTab extends VBox {
         fastBootToggle = new ToggleButton("Analizando...");
         fastBootToggle.setOnAction(e -> toggleFastBoot());
 
+        fastBootStateBadge = new Label("Leyendo...");
+        fastBootStateBadge.getStyleClass().addAll("pill", "pill-muted");
+
         Label infoLabel = new Label("Desactivar para evitar caché persistente y asegurar apagado completo.");
-        infoLabel.setStyle("-fx-text-fill: #aaa; -fx-font-style: italic;");
+        infoLabel.getStyleClass().add("muted-label");
         infoLabel.setWrapText(true);
 
-        box.getChildren().addAll(label, fastBootToggle, infoLabel);
+        Label restartLabel = new Label("Tip: Windows puede requerir reinicio para aplicar por completo el cambio de Inicio Rápido.");
+        restartLabel.getStyleClass().add("muted-label");
+        restartLabel.setWrapText(true);
+
+        Button openPowerSettings = new Button("Abrir configuración de energía");
+        openPowerSettings.getStyleClass().add("ghost-button");
+        openPowerSettings.setOnAction(e -> openPowerOptions());
+
+        VBox textBox = new VBox(6, label, infoLabel, restartLabel);
+        VBox toggleBox = new VBox(6, fastBootToggle, fastBootStateBadge);
+        VBox actionsBox = new VBox(8, openPowerSettings);
+
+        box.getChildren().addAll(textBox, toggleBox, actionsBox);
         return box;
     }
 
@@ -171,7 +187,7 @@ public class StartupManagerTab extends VBox {
             return;
         new Thread(() -> {
             try {
-                String cmd = "reg query \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power\" /v HiberbootEnabled";
+                String cmd = "reg query \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power\" /v HiberbootEnabled /reg:64";
                 Process p = Runtime.getRuntime().exec(cmd);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 String line;
@@ -221,7 +237,7 @@ public class StartupManagerTab extends VBox {
         // Check fastboot con popup
         new Thread(() -> {
             try {
-                String cmd = "reg query \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power\" /v HiberbootEnabled";
+                String cmd = "reg query \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power\" /v HiberbootEnabled /reg:64";
                 Process p = Runtime.getRuntime().exec(cmd);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
                 String line;
@@ -249,15 +265,25 @@ public class StartupManagerTab extends VBox {
         if (enabled) {
             fastBootToggle.setSelected(true);
             fastBootToggle.setStyle("-fx-background-color: #28a745; -fx-text-fill: white;");
+            if (fastBootStateBadge != null) {
+                fastBootStateBadge.setText("Activado (registro 64-bit)");
+                fastBootStateBadge.getStyleClass().setAll("pill", "pill-success");
+            }
         } else {
             fastBootToggle.setSelected(false);
             fastBootToggle.setStyle("-fx-background-color: #6c757d; -fx-text-fill: white;");
+            if (fastBootStateBadge != null) {
+                fastBootStateBadge.setText("Desactivado (registro 64-bit)");
+                fastBootStateBadge.getStyleClass().setAll("pill", "pill-muted");
+            }
         }
     }
 
     private void toggleFastBoot() {
-        boolean currentlyEnabled = fastBootToggle.isSelected();
-        String newVal = currentlyEnabled ? "0" : "1"; // 0 para desactivar, 1 para activar
+        // El ToggleButton ya cambió su estado antes de disparar el evento, así que
+        // isSelected refleja el estado deseado (tras el click), no el previo.
+        boolean targetEnabled = fastBootToggle.isSelected();
+        String newVal = targetEnabled ? "1" : "0"; // 0 para desactivar, 1 para activar
 
         Platform.runLater(() -> {
             fastBootToggle.setDisable(true);
@@ -276,6 +302,10 @@ public class StartupManagerTab extends VBox {
                         "rem Intentamos cambiar la clave HiberbootEnabled\r\n" +
                         "reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power\" /v HiberbootEnabled /t REG_DWORD /d "
                         + newVal + " /f\r\n" +
+                        "if %errorlevel% neq 0 (\r\n" +
+                        "    reg add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power\" /v HiberbootEnabled /t REG_DWORD /d "
+                        + newVal + " /f /reg:64\r\n" +
+                        ")\r\n" +
                         "\r\n" +
                         "if %errorlevel% neq 0 (\r\n" +
                         "    color 4f\r\n" +
@@ -335,6 +365,20 @@ public class StartupManagerTab extends VBox {
 
     private boolean isWindows() {
         return System.getProperty("os.name").toLowerCase().contains("win");
+    }
+
+    private void openPowerOptions() {
+        if (!isWindows()) {
+            showAlert("Solo Windows", "Esta acción abre el panel de energía de Windows.");
+            return;
+        }
+        new Thread(() -> {
+            try {
+                Runtime.getRuntime().exec("control.exe /name Microsoft.PowerOptions");
+            } catch (Exception e) {
+                Platform.runLater(() -> showAlert("No se pudo abrir", "Intenta abrir Configuración > Energía manualmente.\n" + e.getMessage()));
+            }
+        }).start();
     }
 
     private void showAlert(String title, String message) {

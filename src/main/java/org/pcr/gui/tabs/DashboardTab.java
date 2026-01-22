@@ -9,41 +9,160 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class DashboardTab extends VBox {
 
         private TabPane tabPane;
+        private ListView<String> activityLog;
+        private Label kpiOsValue;
+        private Label kpiJavaValue;
+        private Label kpiStorageValue;
 
         public DashboardTab(TabPane tabPane) {
                 this.tabPane = tabPane;
-                setSpacing(20);
+                setSpacing(18);
                 setPadding(new Insets(20));
                 setAlignment(Pos.TOP_CENTER);
 
-                // Title
                 Label titleLabel = new Label("🎯 Panel de Control");
                 titleLabel.setFont(Font.font("System", FontWeight.BOLD, 24));
-                titleLabel.setStyle("-fx-text-fill: #007acc;");
+                titleLabel.setStyle("-fx-text-fill: linear-gradient(to right, #18c29c, #3b82f6);");
 
-                // System info card
-                VBox systemInfoCard = createSystemInfoCard();
+                HBox kpiRow = createKpiRow();
 
-                // Quick actions
+                Label tip = new Label("Tip: usa el lanzador rápido para abrir módulos o ejecutar acciones guiadas.");
+                tip.getStyleClass().add("muted-label");
+
                 GridPane quickActions = createQuickActions();
+                VBox logCard = createLogCard();
 
-                getChildren().addAll(titleLabel, systemInfoCard, quickActions);
+                getChildren().addAll(titleLabel, kpiRow, tip, quickActions, logCard);
+                refreshSystemInfo();
         }
 
-        private VBox createSystemInfoCard() {
-                VBox card = new VBox(10);
-                card.setPadding(new Insets(15));
-                card.setStyle("-fx-background-color: #2d2d2d; -fx-background-radius: 10;");
-                card.setMaxWidth(600);
+        private GridPane createQuickActions() {
+                GridPane grid = new GridPane();
+                grid.setHgap(15);
+                grid.setVgap(15);
+                grid.setAlignment(Pos.CENTER);
 
-                Label cardTitle = new Label("ℹ️ Información del Sistema");
-                cardTitle.setFont(Font.font("System", FontWeight.BOLD, 16));
+                Button organizeBtn = createActionButton("📁 Organizar Archivos",
+                                "Organiza archivos por categorías", 1,
+                                "¿Quieres abrir el Organizador y mover archivos por categoría?");
+                Button cleanBtn = createActionButton("🧹 Limpiar Sistema",
+                                "Limpia archivos temporales", 2,
+                                "¿Limpiamos caché y temporales ahora? Puedes elegir Modo Seguro dentro del módulo.");
+                Button browserBtn = createActionButton("🌐 Limpiar Navegadores",
+                                "Limpia caché de navegadores", 3,
+                                "Abrir limpiador de navegadores para vaciar cachés.");
+                Button duplicateBtn = createActionButton("🔍 Buscar Duplicados",
+                                "Encuentra archivos duplicados", 4,
+                                "Analizar duplicados y liberar espacio.");
 
-                // System info
+                grid.add(organizeBtn, 0, 0);
+                grid.add(cleanBtn, 1, 0);
+                grid.add(browserBtn, 0, 1);
+                grid.add(duplicateBtn, 1, 1);
+
+                return grid;
+        }
+
+        private Button createActionButton(String title, String description, int tabIndex, String confirmationText) {
+                VBox content = new VBox(5);
+                content.setAlignment(Pos.CENTER);
+
+                Label titleLabel = new Label(title);
+                titleLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
+
+                Label descLabel = new Label(description);
+                descLabel.setFont(Font.font("System", 11));
+                descLabel.getStyleClass().add("muted-label");
+
+                content.getChildren().addAll(titleLabel, descLabel);
+
+                Button button = new Button();
+                button.setGraphic(content);
+                button.setPrefSize(250, 80);
+                button.getStyleClass().add("primary-button");
+
+                button.setOnAction(e -> showLaunchDialog(title, confirmationText, tabIndex));
+                return button;
+        }
+
+        private HBox createKpiRow() {
+                HBox row = new HBox(12);
+                row.setAlignment(Pos.CENTER);
+
+                kpiOsValue = new Label("...");
+                VBox kpi1 = buildKpiCard("Sistema", kpiOsValue);
+
+                kpiJavaValue = new Label("...");
+                VBox kpi2 = buildKpiCard("Java", kpiJavaValue);
+
+                kpiStorageValue = new Label("...");
+                VBox kpi3 = buildKpiCard("Almacenamiento", kpiStorageValue);
+
+                row.getChildren().addAll(kpi1, kpi2, kpi3);
+                return row;
+        }
+
+        private VBox buildKpiCard(String title, Label valueLabel) {
+                Label t = new Label(title);
+                t.getStyleClass().add("muted-label");
+                valueLabel.setFont(Font.font("System", FontWeight.BOLD, 16));
+
+                VBox box = new VBox(4, t, valueLabel);
+                box.getStyleClass().add("card-pane");
+                box.setPadding(new Insets(12));
+                box.setPrefWidth(200);
+                return box;
+        }
+
+        private VBox createLogCard() {
+                activityLog = new ListView<>();
+                activityLog.setPrefHeight(170);
+                activityLog.setPlaceholder(new Label("Aún no hay actividad en esta sesión."));
+
+                VBox logCard = new VBox(8, new Label("🗒️ Registro rápido"), activityLog);
+                logCard.getStyleClass().add("card-pane");
+                logCard.setPadding(new Insets(12));
+                logCard.setMaxWidth(700);
+                return logCard;
+        }
+
+        private void showLaunchDialog(String title, String message, int tabIndex) {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle(title);
+                alert.setHeaderText(title);
+                alert.setContentText(message);
+
+                ButtonType openTab = new ButtonType("Abrir módulo", ButtonBar.ButtonData.OK_DONE);
+                ButtonType cancel = new ButtonType("Cancelar", ButtonBar.ButtonData.CANCEL_CLOSE);
+                alert.getButtonTypes().setAll(openTab, cancel);
+
+                alert.showAndWait().ifPresent(resp -> {
+                        if (resp == openTab) {
+                                if (tabPane != null && tabIndex < tabPane.getTabs().size()) {
+                                        tabPane.getSelectionModel().select(tabIndex);
+                                        logActivity("Acción lanzada: " + title);
+                                }
+                        }
+                });
+        }
+
+        private void logActivity(String text) {
+                if (activityLog == null)
+                        return;
+                String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+                activityLog.getItems().add(0, "[" + timestamp + "] " + text);
+                if (activityLog.getItems().size() > 50) {
+                        activityLog.getItems().remove(50, activityLog.getItems().size());
+                }
+        }
+
+        private void refreshSystemInfo() {
                 String os = System.getProperty("os.name");
                 String javaVersion = System.getProperty("java.version");
 
@@ -55,69 +174,10 @@ public class DashboardTab extends VBox {
                         freeSpace += root.getFreeSpace();
                 }
 
-                Label osLabel = new Label("Sistema Operativo: " + os);
-                Label javaLabel = new Label("Versión Java: " + javaVersion);
-                Label spaceLabel = new Label(String.format("Espacio Libre: %.2f GB / %.2f GB",
+                kpiOsValue.setText(os);
+                kpiJavaValue.setText(javaVersion);
+                kpiStorageValue.setText(String.format("%.2f GB libres / %.2f GB",
                                 freeSpace / (1024.0 * 1024 * 1024),
                                 totalSpace / (1024.0 * 1024 * 1024)));
-
-                card.getChildren().addAll(cardTitle, new Separator(), osLabel, javaLabel, spaceLabel);
-                return card;
-        }
-
-        private GridPane createQuickActions() {
-                GridPane grid = new GridPane();
-                grid.setHgap(15);
-                grid.setVgap(15);
-                grid.setAlignment(Pos.CENTER);
-
-                Button organizeBtn = createActionButton("📁 Organizar Archivos",
-                                "Organiza archivos por categorías", 1);
-                Button cleanBtn = createActionButton("🧹 Limpiar Sistema",
-                                "Limpia archivos temporales", 2);
-                Button browserBtn = createActionButton("🌐 Limpiar Navegadores",
-                                "Limpia caché de navegadores", 3);
-                Button duplicateBtn = createActionButton("🔍 Buscar Duplicados",
-                                "Encuentra archivos duplicados", 4);
-
-                grid.add(organizeBtn, 0, 0);
-                grid.add(cleanBtn, 1, 0);
-                grid.add(browserBtn, 0, 1);
-                grid.add(duplicateBtn, 1, 1);
-
-                return grid;
-        }
-
-        private Button createActionButton(String title, String description, int tabIndex) {
-                VBox content = new VBox(5);
-                content.setAlignment(Pos.CENTER);
-
-                Label titleLabel = new Label(title);
-                titleLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
-
-                Label descLabel = new Label(description);
-                descLabel.setFont(Font.font("System", 11));
-                descLabel.setStyle("-fx-text-fill: #888;");
-
-                content.getChildren().addAll(titleLabel, descLabel);
-
-                Button button = new Button();
-                button.setGraphic(content);
-                button.setPrefSize(250, 80);
-                button.setStyle("-fx-background-color: #007acc; -fx-text-fill: white; -fx-background-radius: 10;");
-
-                // Acción: cambiar a la pestaña correspondiente
-                button.setOnAction(e -> {
-                        if (tabPane != null && tabIndex < tabPane.getTabs().size()) {
-                                tabPane.getSelectionModel().select(tabIndex);
-                        }
-                });
-
-                button.setOnMouseEntered(e -> button
-                                .setStyle("-fx-background-color: #005a9e; -fx-text-fill: white; -fx-background-radius: 10;"));
-                button.setOnMouseExited(e -> button
-                                .setStyle("-fx-background-color: #007acc; -fx-text-fill: white; -fx-background-radius: 10;"));
-
-                return button;
         }
 }

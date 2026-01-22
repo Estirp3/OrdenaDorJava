@@ -9,6 +9,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
@@ -36,6 +37,8 @@ public class DiskAnalyzerTab extends VBox {
     private FilteredList<LargeFile> filteredData;
     private Label summaryLabel;
     private Button resetButton; // Botón para quitar filtro
+    private ProgressBar progressBar;
+    private Label progressLabel;
 
     public DiskAnalyzerTab() {
         setSpacing(15);
@@ -52,6 +55,13 @@ public class DiskAnalyzerTab extends VBox {
 
         summaryLabel = new Label("");
         summaryLabel.setFont(Font.font("System", 12));
+
+        progressBar = new ProgressBar(0);
+        progressBar.setPrefWidth(300);
+        progressBar.setVisible(false);
+
+        progressLabel = new Label("");
+        progressLabel.getStyleClass().add("muted-label");
 
         // Split pane for chart and table
         SplitPane splitPane = new SplitPane();
@@ -70,8 +80,11 @@ public class DiskAnalyzerTab extends VBox {
         splitPane.getItems().addAll(pieChart, largeFilesTable);
         splitPane.setDividerPositions(0.4);
 
+        HBox progressBox = new HBox(10, progressBar, progressLabel);
+        progressBox.setAlignment(Pos.CENTER_LEFT);
+
         getChildren().addAll(titleLabel, new Separator(), directoryBox, buttonBox,
-                statusLabel, summaryLabel, splitPane);
+                statusLabel, summaryLabel, progressBox, splitPane);
         VBox.setVgrow(splitPane, Priority.ALWAYS);
     }
 
@@ -293,12 +306,16 @@ public class DiskAnalyzerTab extends VBox {
         masterData.clear();
         summaryLabel.setText("");
         statusLabel.setText("🔄 Analizando...");
+        progressBar.setProgress(0);
+        progressBar.setVisible(true);
+        progressLabel.setText("Preparando...");
         resetButton.setVisible(false);
 
         new Thread(() -> {
             try {
                 DiskSpaceAnalyzer analyzer = new DiskSpaceAnalyzer(100 * 1024 * 1024); // 100MB threshold
                 analyzer.setProgressCallback(msg -> Platform.runLater(() -> statusLabel.setText("🔄 " + msg)));
+                analyzer.setProgressValueCallback(val -> Platform.runLater(() -> updateProgress(val)));
 
                 DiskSpaceAnalyzer.DiskAnalysisResult result = analyzer.analyze(Path.of(directory));
 
@@ -340,7 +357,9 @@ public class DiskAnalyzerTab extends VBox {
                     summaryLabel.setText(summary);
                     statusLabel.setText("✅ Análisis completado");
                     statusLabel.setStyle("-fx-text-fill: #28a745;");
+                    updateProgress(1d);
                     analyzeButton.setDisable(false);
+                    progressLabel.setText("Listo");
                 });
 
             } catch (Exception ex) {
@@ -348,9 +367,27 @@ public class DiskAnalyzerTab extends VBox {
                     statusLabel.setText("❌ Error: " + ex.getMessage());
                     statusLabel.setStyle("-fx-text-fill: #dc3545;");
                     analyzeButton.setDisable(false);
+                    progressBar.setVisible(false);
+                    progressLabel.setText("");
                 });
             }
         }).start();
+    }
+
+    private void updateProgress(double value) {
+        if (value < 0) {
+            progressBar.setProgress(ProgressIndicator.INDETERMINATE_PROGRESS);
+            progressLabel.setText("Calculando...");
+        } else {
+            progressBar.setProgress(value);
+            int percent = (int) Math.min(100, Math.round(value * 100));
+            progressLabel.setText(percent + "%");
+            if (value >= 1d) {
+                progressBar.setVisible(false);
+            } else {
+                progressBar.setVisible(true);
+            }
+        }
     }
 
     private void showAlert(String title, String message) {

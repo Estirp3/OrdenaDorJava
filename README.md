@@ -1,6 +1,19 @@
 # OrdenaDorJava - Organizador y Limpiador de PC
 
-Aplicación de escritorio moderna con interfaz gráfica para organizar archivos y optimizar el rendimiento de tu computadora.
+Aplicación de escritorio con GUI (JavaFX) para ordenar tus archivos, limpiar basura y optimizar el arranque de Windows en unos clics.
+
+## 🧭 ¿Qué hace?
+- Ordena carpetas grandes por tipo de archivo y genera reportes HTML.
+- Limpia temporales (modo seguro) o hace mantenimiento profundo (modo agresivo) con tareas de red.
+- Gestiona programas de inicio de Windows y permite desactivar Inicio Rápido (Fast Boot) para apagar por completo el equipo.
+- Limpia caché de navegadores (Chrome, Edge, Firefox, Brave).
+- Detecta duplicados por hash y muestra espacio recuperable.
+- Analiza espacio en disco con gráficas y lista de archivos grandes.
+
+## ▶️ Uso rápido
+1) **Portable**: descomprime `OrdenaDor-Portable-v1.0.zip` y ejecuta `OrdenaDor.bat`.
+2) **JAR**: `java -jar target\OrdenDeArchivos-1.0-jar-with-dependencies.jar` (o `ejecutar-gui.bat`).
+3) **Consola**: `java -jar target\OrdenDeArchivos-1.0-jar-with-dependencies.jar --console` (o `ejecutar-consola.bat`).
 
 ## 🚀 Características Principales
 

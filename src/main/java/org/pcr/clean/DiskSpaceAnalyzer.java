@@ -33,7 +33,8 @@ public class DiskSpaceAnalyzer {
         }
     }
 
-    private Consumer<String> progressCallback;
+    private Consumer<String> progressMessageCallback;
+    private Consumer<Double> progressValueCallback;
     private final long largeFileThreshold;
 
     public DiskSpaceAnalyzer(long largeFileThreshold) {
@@ -41,19 +42,27 @@ public class DiskSpaceAnalyzer {
     }
 
     public void setProgressCallback(Consumer<String> callback) {
-        this.progressCallback = callback;
+        this.progressMessageCallback = callback;
+    }
+
+    public void setProgressValueCallback(Consumer<Double> callback) {
+        this.progressValueCallback = callback;
     }
 
     public DiskAnalysisResult analyze(Path directory) throws IOException {
         DiskAnalysisResult result = new DiskAnalysisResult();
 
-        updateProgress("Analizando espacio en disco...");
+        long totalFiles = countRegularFiles(directory);
+        updateProgress("Analizando espacio en disco...", 0d);
+
+        final long[] processedFiles = { 0L };
 
         Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                 try {
                     if (attrs.isRegularFile()) {
+                        processedFiles[0]++;
                         long size = attrs.size();
                         result.totalSize += size;
 
@@ -66,7 +75,8 @@ public class DiskSpaceAnalyzer {
                             result.largeFiles.add(new FileInfo(file, size, category));
                         }
 
-                        updateProgress("Procesando: " + file.getFileName());
+                        double progress = totalFiles > 0 ? (double) processedFiles[0] / (double) totalFiles : -1d;
+                        updateProgress("Procesando: " + file.getFileName(), progress);
                     }
                 } catch (Exception ignored) {
                 }
@@ -92,8 +102,16 @@ public class DiskSpaceAnalyzer {
         // Sort large files
         Collections.sort(result.largeFiles);
 
-        updateProgress("Análisis completado!");
+        updateProgress("Análisis completado!", 1d);
         return result;
+    }
+
+    private long countRegularFiles(Path dir) {
+        try {
+            return Files.walk(dir).filter(Files::isRegularFile).count();
+        } catch (Exception e) {
+            return 0L;
+        }
     }
 
     private String categorizeFile(Path file) {
@@ -153,9 +171,12 @@ public class DiskSpaceAnalyzer {
         return size[0];
     }
 
-    private void updateProgress(String message) {
-        if (progressCallback != null) {
-            progressCallback.accept(message);
+    private void updateProgress(String message, double progress) {
+        if (progressMessageCallback != null) {
+            progressMessageCallback.accept(message);
+        }
+        if (progressValueCallback != null) {
+            progressValueCallback.accept(progress);
         }
     }
 
