@@ -24,7 +24,6 @@ public class CandidateScanner {
                 return FileVisitResult.CONTINUE;
             }
 
-            // Si no hay permisos o está bloqueado, seguimos sin cortar el árbol
             @Override public FileVisitResult visitFileFailed(Path file, IOException exc) {
                 return FileVisitResult.CONTINUE;
             }

@@ -1,4 +1,3 @@
-// src/main/java/org/pcr/Main.java
 package org.pcr;
 
 import org.pcr.core.FileOrganizer;
@@ -15,7 +14,6 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-        // Check if console mode is requested
         boolean consoleMode = false;
         for (String arg : args) {
             if ("--console".equals(arg)) {
@@ -51,16 +49,13 @@ public class Main {
             int opcion = askMenu(sc);
             boolean quiereLimpiar = (opcion == 2 || opcion == 3);
 
-            // resultados para el reporte
             Result orgRes = new Result(); // vacío por defecto
             CleanResult cleanRes = new CleanResult();// vacío por defecto
 
-            // 1) Organizar (si corresponde)
             if (opcion == 1 || opcion == 3) {
                 orgRes = FileOrganizer.organizar(origen, destino, categorias, AppLocation.getRunningPath());
             }
 
-            // 2) Limpiar (si corresponde)
             if (quiereLimpiar) {
                 boolean agresivo = askYesNo(sc, "¿Modo agresivo (puede requerir admin/root)? (s/n) ");
                 SystemCleaner.Mode mode = agresivo ? SystemCleaner.Mode.AGGRESSIVE : SystemCleaner.Mode.SAFE;
@@ -80,7 +75,6 @@ public class Main {
                 }
             }
 
-            // 3) Reporte HTML
             HtmlReportWriter.write(
                     destino,
                     orgRes.moves,
@@ -97,7 +91,6 @@ public class Main {
         }
     }
 
-    // ---------------- helpers ----------------
 
     private static int askMenu(Scanner sc) {
         System.out.println();

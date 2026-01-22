@@ -1,4 +1,3 @@
-// src/main/java/org/pcr/clean/BrowserCacheCleaner.java
 package org.pcr.clean;
 
 import java.io.IOException;
@@ -174,7 +173,6 @@ public class BrowserCacheCleaner {
                         Files.deleteIfExists(child);
                     }
                 } catch (Exception ignored) {
-                    // Some files may be locked
                 }
             }
         }

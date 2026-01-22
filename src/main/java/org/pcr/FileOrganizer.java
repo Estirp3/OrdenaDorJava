@@ -13,11 +13,9 @@ public class FileOrganizer {
 
         Files.createDirectories(carpetaDestino);
 
-        //Archivo de log
         Path logFile = carpetaDestino.resolve("log.txt");
         try (BufferedWriter log = Files.newBufferedWriter(logFile, StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
 
-            // Nombre del ejecutable si corre desde JAR
             String runningJarName = null;
             if (runningPath != null && Files.isRegularFile(runningPath)) {
                 runningJarName = runningPath.getFileName().toString().toLowerCase();
@@ -29,21 +27,18 @@ public class FileOrganizer {
             for (File archivo : archivos) {
                 Path p = archivo.toPath();
 
-                //No tocar directorios ni archivos ocultos
                 if (Files.isDirectory(p) || archivo.isHidden()) {
                     log.write("Ignorado (directorio/oculto): " + archivo.getName());
                     log.newLine();
                     continue;
                 }
 
-                //No tocar la carpeta destino ni su contenido
                 if (p.equals(carpetaDestino) || p.startsWith(carpetaDestino)) {
                     log.write("Ignorado (carpeta destino): " + archivo.getName());
                     log.newLine();
                     continue;
                 }
 
-                //No mover el propio JAR o binario/clases
                 boolean esPropio = false;
                 if (runningPath != null) {
                     try {
@@ -63,7 +58,6 @@ public class FileOrganizer {
                     continue;
                 }
 
-                //Clasificar y mover
                 String extension = CategoryResolver.getExtension(archivo.getName());
                 String categoria = CategoryResolver.getCategoria(extension, categorias);
 

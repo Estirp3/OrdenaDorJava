@@ -1,4 +1,3 @@
-// src/main/java/org/pcr/gui/tabs/DiskAnalyzerTab.java
 package org.pcr.gui.tabs;
 
 import javafx.application.Platform;
@@ -63,7 +62,6 @@ public class DiskAnalyzerTab extends VBox {
         progressLabel = new Label("");
         progressLabel.getStyleClass().add("muted-label");
 
-        // Split pane for chart and table
         SplitPane splitPane = new SplitPane();
         splitPane.setOrientation(javafx.geometry.Orientation.VERTICAL);
 
@@ -73,7 +71,6 @@ public class DiskAnalyzerTab extends VBox {
 
         largeFilesTable = createLargeFilesTable();
 
-        // Inicializar datos filtrados
         filteredData = new FilteredList<>(masterData, p -> true);
         largeFilesTable.setItems(filteredData);
 
@@ -151,19 +148,8 @@ public class DiskAnalyzerTab extends VBox {
 
         TableColumn<LargeFile, String> sizeCol = new TableColumn<>("Tamaño");
         sizeCol.setCellValueFactory(new PropertyValueFactory<>("formattedSize"));
-        // Importante: Ordenar por el valor numérico (bytes), no por el texto
-        sizeCol.setComparator((s1, s2) -> {
-            // Este comparador es visual, pero para que funcione el sort real necesitamos
-            // acceder al objeto row
-            // JavaFX hace el sort basadado en el valor de la celda.
-            // Truco: Usaremos el valor rawSize en la celda si queremos orden perfecto,
-            // o definimos un comparador custom en la columna que acceda al item.
-            // Pero lo más fácil es que la column sea de tipo Long (rawSize) y usemos
-            // setCellFactory para formatear.
-            return 0;
-        });
+        sizeCol.setComparator((s1, s2) -> 0);
 
-        // Mejor enfoque para ordenamiento numérico correcto:
         TableColumn<LargeFile, Long> sizeValCol = new TableColumn<>("Tamaño");
         sizeValCol.setCellValueFactory(new PropertyValueFactory<>("rawSize"));
         sizeValCol.setCellFactory(column -> new TableCell<LargeFile, Long>() {
@@ -241,8 +227,6 @@ public class DiskAnalyzerTab extends VBox {
         actionCol.setCellFactory(cellFactory);
 
         table.getColumns().addAll(fileCol, pathCol, sizeValCol, categoryCol, actionCol);
-
-        // Default sort by size descending
         sizeValCol.setSortType(TableColumn.SortType.DESCENDING);
         table.getSortOrder().add(sizeValCol);
 
@@ -320,7 +304,6 @@ public class DiskAnalyzerTab extends VBox {
                 DiskSpaceAnalyzer.DiskAnalysisResult result = analyzer.analyze(Path.of(directory));
 
                 Platform.runLater(() -> {
-                    // Update pie chart
                     result.sizeByCategory.forEach((category, size) -> {
                         if (size > 0) {
                             PieChart.Data data = new PieChart.Data(
@@ -328,7 +311,6 @@ public class DiskAnalyzerTab extends VBox {
                                     size);
                             pieChart.getData().add(data);
 
-                            // Click event for filtering
                             data.getNode().addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
                                 filteredData.setPredicate(file -> file.getCategory().equals(category));
                                 statusLabel.setText("Filtro aplicado: " + category);
@@ -337,7 +319,6 @@ public class DiskAnalyzerTab extends VBox {
                         }
                     });
 
-                    // Update large files table (top 50)
                     int count = 0;
                     for (DiskSpaceAnalyzer.FileInfo fileInfo : result.largeFiles) {
                         masterData.add(new LargeFile(
@@ -347,7 +328,6 @@ public class DiskAnalyzerTab extends VBox {
                                 fileInfo.category));
                     }
 
-                    // Trigger sort
                     largeFilesTable.sort();
 
                     String summary = String.format("✅ Análisis completado - Tamaño total: %s - Archivos grandes: %d",

@@ -1,4 +1,3 @@
-// src/main/java/org/pcr/gui/tabs/DuplicateFinderTab.java
 package org.pcr.gui.tabs;
 
 import javafx.application.Platform;
@@ -255,7 +254,6 @@ public class DuplicateFinderTab extends VBox {
                 DuplicateFileFinder.DuplicateResult result = finder.findDuplicates(Path.of(directory));
 
                 Platform.runLater(() -> {
-                    // Add results to table
                     result.duplicateGroups.forEach((hash, files) -> {
                         for (Path file : files) {
                             try {

@@ -1,4 +1,3 @@
-// src/main/java/org/pcr/core/FileOrganizer.java
 package org.pcr.core;
 
 import org.pcr.CategoryResolver;
@@ -13,7 +12,6 @@ import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 
 public class FileOrganizer {
 
-    // Excluir por nombre en el nivel raíz
     private static final Set<String> EXCLUDE_NAMES = new HashSet<>(Arrays.asList(
             "_orden", "_ordenado", "node_modules", ".pnpm", ".git", ".idea", ".vscode", "target", "build"
     ));
@@ -52,7 +50,6 @@ public class FileOrganizer {
                         ? runningPath.getFileName().toString().toLowerCase(Locale.ROOT)
                         : null;
 
-        // Candidatos: SOLO nivel raíz
         List<Path> candidatos = listarNivelRaiz(carpetaOrigen, carpetaDestino, runningPath, runningJarName);
 
         Path logFile = carpetaDestino.resolve("log.txt");
@@ -65,7 +62,6 @@ public class FileOrganizer {
                 Path p = candidatos.get(i);
                 try {
                     if (Files.isDirectory(p)) {
-                        // mover carpeta como unidad
                         Path destDir = carpetaDestino.resolve("_carpetas");
                         Files.createDirectories(destDir);
 
@@ -83,7 +79,6 @@ public class FileOrganizer {
                         }
 
                     } else if (Files.isRegularFile(p)) {
-                        // archivo suelto → por categoría
                         if (!Files.isReadable(p)) {
                             writeln(log, "No movido (sin permisos lectura): " + p);
                             r.moves.add(new MoveEvent("skip", null, p, null, "sin permisos de lectura", -1));
@@ -123,7 +118,6 @@ public class FileOrganizer {
                         }
 
                     } else {
-                        // ni archivo ni dir regular
                         r.skipped++;
                     }
                 } catch (Exception e) {
@@ -145,7 +139,6 @@ public class FileOrganizer {
         return r;
     }
 
-    // ==================== Helpers privados ====================
 
     /** Lista solo los elementos del nivel raíz a procesar. */
     private static List<Path> listarNivelRaiz(Path origen, Path destino, Path runningPath, String runningJarName) throws IOException {

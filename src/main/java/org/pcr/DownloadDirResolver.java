@@ -12,7 +12,6 @@ public class DownloadDirResolver {
         String ruta = sc.nextLine().trim();
 
         if (ruta.isEmpty()) {
-            // Si no escribe nada, usamos la carpeta actual
             ruta = System.getProperty("user.dir");
             System.out.println("⚠ No ingresaste ruta. Se usará: " + ruta);
         }

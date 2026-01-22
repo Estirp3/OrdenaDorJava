@@ -28,10 +28,8 @@ public class StartupManagerTab extends VBox {
         Label titleLabel = new Label("🚀 Optimización del Inicio de Windows");
         titleLabel.setFont(Font.font("System", FontWeight.BOLD, 20));
 
-        // Fast Boot Section
         HBox fastBootBox = createFastBootSection();
 
-        // Startup Apps Section
         Label appsLabel = new Label("Programas de Inicio Automático (Usuario Actual):");
         appsLabel.setFont(Font.font("System", FontWeight.BOLD, 14));
 
@@ -116,7 +114,6 @@ public class StartupManagerTab extends VBox {
         return table;
     }
 
-    // --- Logic ---
 
     private void refreshStartupItems() {
         if (!isWindows()) {
@@ -127,7 +124,6 @@ public class StartupManagerTab extends VBox {
         new Thread(() -> {
             List<StartupItem> items = new ArrayList<>();
             try {
-                // Query HKCU Run
                 Process process = Runtime.getRuntime()
                         .exec("reg query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run");
                 BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -135,7 +131,6 @@ public class StartupManagerTab extends VBox {
                 while ((line = reader.readLine()) != null) {
                     if (line.trim().isEmpty() || line.startsWith("HKEY"))
                         continue;
-                    // Format: Name REG_SZ Command
                     String[] parts = line.trim().split("    REG_SZ    ");
                     if (parts.length >= 2) {
                         items.add(new StartupItem(parts[0], parts[1]));
@@ -164,7 +159,6 @@ public class StartupManagerTab extends VBox {
         confirm.showAndWait().ifPresent(resp -> {
             if (resp == ButtonType.OK) {
                 try {
-                    // reg delete HKCU\...\Run /v Name /f
                     String cmd = "reg delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\" /v \""
                             + selected.name + "\" /f";
                     Process p = Runtime.getRuntime().exec(cmd);
@@ -196,7 +190,6 @@ public class StartupManagerTab extends VBox {
 
                 while ((line = reader.readLine()) != null) {
                     if (line.contains("HiberbootEnabled")) {
-                        // Buscamos 0x1 o 0x0
                         if (line.contains("0x1")) {
                             isEnabled = true;
                             foundValue = "Activado (0x1)";
@@ -204,7 +197,6 @@ public class StartupManagerTab extends VBox {
                             isEnabled = false;
                             foundValue = "Desactivado (0x0)";
                         } else {
-                            // Extraer el valor hexadecimal si es otro
                             foundValue = line.trim();
                         }
                     }
@@ -215,8 +207,6 @@ public class StartupManagerTab extends VBox {
 
                 Platform.runLater(() -> {
                     updateFastBootUI(finalEnabled);
-                    // Solo mostramos tooltip o log, no popup invasivo, salvo si el usuario lo pide
-                    // Pero aca actualizamos el texto del toggle para ser explicito
                     if (finalEnabled) {
                         fastBootToggle.setText("ACTIVADO (Click para desactivar)");
                     } else {
@@ -230,11 +220,9 @@ public class StartupManagerTab extends VBox {
         }).start();
     }
 
-    // Método auxiliar para el botón "Actualizar Lista" que SÍ muestra popup
     private void manualRefresh() {
         refreshStartupItems();
 
-        // Check fastboot con popup
         new Thread(() -> {
             try {
                 String cmd = "reg query \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power\" /v HiberbootEnabled /reg:64";
@@ -280,8 +268,6 @@ public class StartupManagerTab extends VBox {
     }
 
     private void toggleFastBoot() {
-        // El ToggleButton ya cambió su estado antes de disparar el evento, así que
-        // isSelected refleja el estado deseado (tras el click), no el previo.
         boolean targetEnabled = fastBootToggle.isSelected();
         String newVal = targetEnabled ? "1" : "0"; // 0 para desactivar, 1 para activar
 
@@ -292,8 +278,6 @@ public class StartupManagerTab extends VBox {
 
         new Thread(() -> {
             try {
-                // 1. Crear archivo temporal .bat
-                // Los BAT son más amigables con permisos que los PS1 en algunas configuraciones
                 java.nio.file.Path scriptPath = java.nio.file.Files.createTempFile("ordenador_fastboot_fix", ".bat");
                 String scriptContent = "@echo off\r\n" +
                         "title OrdenaDor - Cambiando Configuracion\r\n" +
@@ -323,10 +307,6 @@ public class StartupManagerTab extends VBox {
 
                 java.nio.file.Files.writeString(scriptPath, scriptContent);
 
-                // 2. Ejecutar ese .bat como Administrador usando PowerShell Start-Process solo
-                // como lanzador
-                // Esto evita las políticas de ejecución de scripts de PS, ya que ejecutamos un
-                // binario (cmd/bat)
                 String cmd = "powershell -Command \"Start-Process -FilePath '" + scriptPath.toAbsolutePath().toString()
                         + "' -Verb RunAs -Wait\"";
 
@@ -335,7 +315,6 @@ public class StartupManagerTab extends VBox {
                 Process p = Runtime.getRuntime().exec(cmd);
                 int code = p.waitFor();
 
-                // Borrar script después de un momento
                 try {
                     Thread.sleep(1000);
                     java.nio.file.Files.deleteIfExists(scriptPath);
@@ -343,7 +322,6 @@ public class StartupManagerTab extends VBox {
                 }
 
                 Platform.runLater(() -> {
-                    // 3. Verificar
                     checkFastBootStatus();
                     fastBootToggle.setDisable(false);
 
@@ -389,7 +367,6 @@ public class StartupManagerTab extends VBox {
         alert.showAndWait();
     }
 
-    // Inner class for table
     public static class StartupItem {
         String name;
         String command;

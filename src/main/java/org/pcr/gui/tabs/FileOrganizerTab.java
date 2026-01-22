@@ -1,4 +1,3 @@
-// src/main/java/org/pcr/gui/tabs/FileOrganizerTab.java
 package org.pcr.gui.tabs;
 
 import javafx.application.Platform;
@@ -34,23 +33,17 @@ public class FileOrganizerTab extends VBox {
         setSpacing(15);
         setPadding(new Insets(20));
 
-        // Title
         Label titleLabel = new Label("📁 Organizador de Archivos");
         titleLabel.setFont(Font.font("System", FontWeight.BOLD, 20));
 
-        // Directory selection
         HBox directoryBox = createDirectorySelector();
 
-        // Target folder name selection
         HBox targetBox = createTargetNameSelector();
 
-        // Progress section
         VBox progressBox = createProgressSection();
 
-        // Results table
         resultsTable = createResultsTable();
 
-        // Action buttons
         HBox buttonBox = createActionButtons();
 
         getChildren().addAll(titleLabel, new Separator(), directoryBox, targetBox, buttonBox, progressBox,
@@ -170,8 +163,6 @@ public class FileOrganizerTab extends VBox {
             return;
         new Thread(() -> {
             try {
-                // Try to open parent directory if it's a file, or directory itself if it is a
-                // directory
                 File file = path.toFile();
                 if (file.exists()) {
                     if (file.isFile()) {
@@ -236,7 +227,6 @@ public class FileOrganizerTab extends VBox {
                     statusLabel.setText(String.format("✅ Completado: %d archivos movidos, %d omitidos",
                             result.filesMoved, result.skipped));
 
-                    // Add results to table
                     result.moves.forEach(move -> resultsTable.getItems().add(new FileResult(
                             move.src.getFileName().toString(),
                             move.category,

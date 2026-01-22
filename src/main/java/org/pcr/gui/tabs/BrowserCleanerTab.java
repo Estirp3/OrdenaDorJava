@@ -1,4 +1,3 @@
-// src/main/java/org/pcr/gui/tabs/BrowserCleanerTab.java
 package org.pcr.gui.tabs;
 
 import javafx.application.Platform;
@@ -158,7 +157,6 @@ public class BrowserCleanerTab extends VBox {
                     scanButton.setDisable(false);
                     cleanButton.setDisable(false);
 
-                    // Rescan after cleaning
                     scanCaches();
                 });
 

@@ -8,9 +8,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-/**
- * Reporte HTML dark-mode (sin dependencias).
- */
 public class HtmlReportWriter {
 
     public static void write(Path destinoDir,
@@ -35,54 +32,43 @@ public class HtmlReportWriter {
         String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
 
         try (BufferedWriter w = Files.newBufferedWriter(out, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-            // ===== HEAD =====
             w.write("<!doctype html><html lang='es'><head><meta charset='utf-8'>");
             w.write("<meta name='viewport' content='width=device-width, initial-scale=1'>");
             w.write("<title>Reporte de Organización y Limpieza</title>");
             w.write("<style>");
-            // layout
             w.write("html,body{background:#0b1220;color:#e6e8ee;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0}");
             w.write(".wrap{padding:28px;max-width:1200px;margin:0 auto}");
             w.write(".h1{font-size:26px;font-weight:800;margin:0 0 6px}");
             w.write(".muted{opacity:.75}");
             w.write(".grid{display:grid;gap:16px}");
             w.write(".cards{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}");
-            // cards
             w.write(".card{background:#111a2b;border:1px solid #24324a;border-radius:14px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.35)}");
             w.write(".section-title{font-size:18px;font-weight:700;margin:6px 0 12px}");
-            // kpis
             w.write(".kpi{font-size:28px;font-weight:800;margin:2px 0 0}");
             w.write(".kpl{font-size:12px;opacity:.8;margin:0}");
-            // table
             w.write(".table-wrap{overflow:auto;border-radius:12px;border:1px solid #23324b}");
             w.write(".table{min-width:920px;width:100%;border-collapse:collapse;font-size:14px;background:#0f1729}");
             w.write(".table th,.table td{border-bottom:1px solid #23324b;padding:10px 8px;vertical-align:top}");
             w.write(".table th{color:#aab3c5;text-align:left;font-weight:600;background:#0c1628;position:sticky;top:0}");
             w.write(".mono{font-family:ui-monospace,SFMono-Regular,Consolas,Monaco,monospace;font-size:12px;word-break:break-all}");
-            // badges
             w.write(".badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;border:1px solid #334567;background:#0f1a2a}");
             w.write(".ok{color:#9FE870;border-color:#2d6a39;background:rgba(45,106,57,.15)}");
             w.write(".warn{color:#ffd166;border-color:#7a5c21;background:rgba(122,92,33,.15)}");
             w.write(".err{color:#ff6b6b;border-color:#723232;background:rgba(114,50,50,.15)}");
             w.write(".cat{color:#6ab0ff;border-color:#2d4e7a;background:rgba(45,78,122,.15)}");
-            // charts
             w.write(".chart{background:#0f1729;border:1px solid #23324b;border-radius:12px;padding:12px}");
             w.write(".legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}");
             w.write(".legend span{display:inline-flex;align-items:center;gap:6px;font-size:12px;opacity:.9}");
             w.write(".dot{width:10px;height:10px;border-radius:2px;display:inline-block}");
             w.write(".dot-cat{background:#59A5FF}.dot-sum1{background:#9FE870}.dot-sum2{background:#6AB0FF}.dot-sum3{background:#FFD166}.dot-sum4{background:#FF6B6B}");
-            // center section
             w.write(".center{display:flex;justify-content:center}");
-            // footer
             w.write(".footer{margin-top:24px;opacity:.7;font-size:12px;text-align:center}");
             w.write("a{color:#8fcaff;text-decoration:none}a:hover{text-decoration:underline}");
             w.write("</style></head><body><div class='wrap'>");
 
-            // ===== HEADER =====
             w.write("<div class='h1'>Reporte de Organización y Limpieza</div>");
             w.write("<div class='muted' style='margin-bottom:14px'>Generado: " + esc(fecha) + "</div>");
 
-            // ===== KPIs =====
             w.write("<div class='grid cards' style='margin-top:6px'>");
             w.write(cardKpi("Archivos movidos", String.valueOf(filesMoved), "✅ OK"));
             w.write(cardKpi("Carpetas movidas", String.valueOf(dirsMoved), "📦 OK"));
@@ -91,7 +77,6 @@ public class HtmlReportWriter {
             w.write(cardKpi("Espacio liberado", human(totalBytesFreed), "🧹 Limpieza"));
             w.write("</div>");
 
-            // ===== CHARTS MOVIMIENTOS =====
             w.write("<div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(320px,1fr));margin-top:16px'>");
 
             w.write("<div class='card'><div class='section-title'>Distribución por categoría</div>");
@@ -110,9 +95,8 @@ public class HtmlReportWriter {
             w.write("<span><i class='dot dot-sum4'></i> Errores</span>");
             w.write("</div></div></div>");
 
-            w.write("</div>"); // grid charts
+            w.write("</div>");
 
-            // ===== DETALLE MOVIMIENTOS =====
             w.write("<div class='card' style='margin-top:16px'>");
             w.write("<div class='section-title'>Detalle de movimientos</div>");
             w.write("<div class='table-wrap'><table class='table'><thead><tr>");
@@ -144,24 +128,20 @@ public class HtmlReportWriter {
             }
             w.write("</tbody></table></div></div>");
 
-            // ===== LIMPIEZA (al final y centrada) =====
             w.write("<div class='center' style='margin-top:18px'><div class='card' style='max-width:1120px;flex:1'>");
             w.write("<div class='section-title'>Limpieza del sistema</div>");
 
-            // gráficos limpieza
             w.write("<div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px'>");
             w.write("<div class='chart'>");
-            w.write(renderCleanBytesChart(cleanEvents));   // barras por bytes liberados
+            w.write(renderCleanBytesChart(cleanEvents));
             w.write("</div>");
             w.write("<div class='chart'>");
-            w.write(renderCleanDonut(cleanEvents));        // donut ok/parcial
+            w.write(renderCleanDonut(cleanEvents));
             w.write("</div>");
             w.write("</div>");
 
-            // tablas
             w.write("<div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:12px;margin-top:12px'>");
 
-            // Acciones
             w.write("<div>");
             w.write("<div class='muted' style='margin-bottom:8px'>Acciones realizadas</div>");
             w.write("<div class='table-wrap'><table class='table'><thead><tr>");
@@ -183,7 +163,6 @@ public class HtmlReportWriter {
             w.write("</tbody></table></div>");
             w.write("</div>");
 
-            // DNS
             w.write("<div>");
             w.write("<div class='muted' style='margin-bottom:8px'>DNS (comandos ejecutados)</div>");
             w.write("<div class='table-wrap'><table class='table'><thead><tr><th>Comando</th><th>Exit</th></tr></thead><tbody>");
@@ -200,17 +179,14 @@ public class HtmlReportWriter {
             w.write("</tbody></table></div>");
             w.write("</div>");
 
-            w.write("</div>"); // grid tablas
-            w.write("</div></div>"); // card limpieza centrada
+            w.write("</div>");
+            w.write("</div></div>");
 
-            // ===== FOOTER =====
             w.write("<div class='footer'>Creado por <strong>Patricio Calderón</strong> y <strong>OpenIA</strong>.</div>");
 
             w.write("</div></body></html>");
         }
     }
-
-    // ===================== RENDER SVG =====================
 
     private static String renderCategoryChart(Map<String,Integer> perCategory, int maxCat) {
         int barH = 20, gap = 10, padding = 10, width = 520;
@@ -277,7 +253,6 @@ public class HtmlReportWriter {
     }
 
     private static String renderCleanBytesChart(List<CleanEvent> cleanEvents) {
-        // barras horizontales por bytes liberados (solo eventos con bytesFreed>0)
         List<CleanEvent> items = new ArrayList<>();
         long max = 0;
         if (cleanEvents != null) {
@@ -341,7 +316,6 @@ public class HtmlReportWriter {
         return sb.toString();
     }
 
-    // ===================== SVG helpers =====================
     private static String rect(int x,int y,int w,int h,String color){
         return "<rect x='"+x+"' y='"+y+"' width='"+w+"' height='"+h+"' rx='4' fill='"+color+"' />";
     }
@@ -355,7 +329,6 @@ public class HtmlReportWriter {
         return (int)Math.round((v/(double)Math.max(1,max))*maxPx);
     }
 
-    // ===================== Utils =====================
     private static String human(long bytes){
         if (bytes < 0) return "-";
         if (bytes == 0) return "0 B";

@@ -1,4 +1,3 @@
-// src/main/java/org/pcr/gui/tabs/DashboardTab.java
 package org.pcr.gui.tabs;
 
 import javafx.geometry.Insets;
@@ -7,6 +6,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.layout.FlowPane;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -19,6 +19,8 @@ public class DashboardTab extends VBox {
         private Label kpiOsValue;
         private Label kpiJavaValue;
         private Label kpiStorageValue;
+        private FlowPane kpiRow;
+        private FlowPane quickActionsPane;
 
         public DashboardTab(TabPane tabPane) {
                 this.tabPane = tabPane;
@@ -30,23 +32,31 @@ public class DashboardTab extends VBox {
                 titleLabel.setFont(Font.font("System", FontWeight.BOLD, 24));
                 titleLabel.setStyle("-fx-text-fill: linear-gradient(to right, #18c29c, #3b82f6);");
 
-                HBox kpiRow = createKpiRow();
+                kpiRow = createKpiRow();
 
                 Label tip = new Label("Tip: usa el lanzador rápido para abrir módulos o ejecutar acciones guiadas.");
                 tip.getStyleClass().add("muted-label");
 
-                GridPane quickActions = createQuickActions();
+                quickActionsPane = createQuickActions();
                 VBox logCard = createLogCard();
 
-                getChildren().addAll(titleLabel, kpiRow, tip, quickActions, logCard);
+                getChildren().addAll(titleLabel, kpiRow, tip, quickActionsPane, logCard);
+
+                widthProperty().addListener((obs, oldV, newV) -> {
+                        double wrap = Math.max(400, newV.doubleValue() - 80);
+                        kpiRow.setPrefWrapLength(wrap);
+                        quickActionsPane.setPrefWrapLength(wrap);
+                });
+
                 refreshSystemInfo();
         }
 
-        private GridPane createQuickActions() {
-                GridPane grid = new GridPane();
-                grid.setHgap(15);
-                grid.setVgap(15);
-                grid.setAlignment(Pos.CENTER);
+        private FlowPane createQuickActions() {
+                FlowPane pane = new FlowPane();
+                pane.setHgap(15);
+                pane.setVgap(15);
+                pane.setAlignment(Pos.CENTER);
+                pane.setPrefWrapLength(600);
 
                 Button organizeBtn = createActionButton("📁 Organizar Archivos",
                                 "Organiza archivos por categorías", 1,
@@ -61,12 +71,9 @@ public class DashboardTab extends VBox {
                                 "Encuentra archivos duplicados", 4,
                                 "Analizar duplicados y liberar espacio.");
 
-                grid.add(organizeBtn, 0, 0);
-                grid.add(cleanBtn, 1, 0);
-                grid.add(browserBtn, 0, 1);
-                grid.add(duplicateBtn, 1, 1);
+                pane.getChildren().addAll(organizeBtn, cleanBtn, browserBtn, duplicateBtn);
 
-                return grid;
+                return pane;
         }
 
         private Button createActionButton(String title, String description, int tabIndex, String confirmationText) {
@@ -85,15 +92,20 @@ public class DashboardTab extends VBox {
                 Button button = new Button();
                 button.setGraphic(content);
                 button.setPrefSize(250, 80);
+                button.setMinWidth(220);
+                button.setMaxWidth(320);
                 button.getStyleClass().add("primary-button");
 
                 button.setOnAction(e -> showLaunchDialog(title, confirmationText, tabIndex));
                 return button;
         }
 
-        private HBox createKpiRow() {
-                HBox row = new HBox(12);
+        private FlowPane createKpiRow() {
+                FlowPane row = new FlowPane();
+                row.setHgap(12);
+                row.setVgap(12);
                 row.setAlignment(Pos.CENTER);
+                row.setPrefWrapLength(600);
 
                 kpiOsValue = new Label("...");
                 VBox kpi1 = buildKpiCard("Sistema", kpiOsValue);

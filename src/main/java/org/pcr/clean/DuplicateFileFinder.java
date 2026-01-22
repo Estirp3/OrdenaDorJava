@@ -1,4 +1,3 @@
-// src/main/java/org/pcr/clean/DuplicateFileFinder.java
 package org.pcr.clean;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -45,7 +44,6 @@ public class DuplicateFileFinder {
                         hashMap.computeIfAbsent(hash, k -> new ArrayList<>()).add(file);
                     }
                 } catch (Exception e) {
-                    // Skip files that can't be read
                 }
                 return FileVisitResult.CONTINUE;
             }
@@ -58,12 +56,10 @@ public class DuplicateFileFinder {
 
         updateProgress("Identificando duplicados...");
 
-        // Filter only groups with duplicates
         for (Map.Entry<String, List<Path>> entry : hashMap.entrySet()) {
             if (entry.getValue().size() > 1) {
                 result.duplicateGroups.put(entry.getKey(), entry.getValue());
 
-                // Calculate duplicate size (all files except one)
                 try {
                     long fileSize = Files.size(entry.getValue().get(0));
                     result.totalDuplicateSize += fileSize * (entry.getValue().size() - 1);

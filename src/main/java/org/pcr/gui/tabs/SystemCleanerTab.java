@@ -1,4 +1,3 @@
-// src/main/java/org/pcr/gui/tabs/SystemCleanerTab.java
 package org.pcr.gui.tabs;
 
 import javafx.application.Platform;

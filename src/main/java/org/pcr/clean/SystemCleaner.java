@@ -1,9 +1,6 @@
-// src/main/java/org/pcr/clean/SystemCleaner.java
 package org.pcr.clean;
 
-import org.pcr.report.CleanEvent;   // <-- usa la clase top-level
-// 👇 elimina este import si lo tenías:
-// import org.pcr.report.HtmlReportWriter;
+import org.pcr.report.CleanEvent;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -36,7 +33,7 @@ public class SystemCleaner {
 
     /** Resultado para el reporte HTML */
     public static class CleanResult {
-        public final List<CleanEvent> events = new ArrayList<>();          // <-- aquí
+        public final List<CleanEvent> events = new ArrayList<>();
         public final List<String> dnsCommandsTried = new ArrayList<>();
         public final Map<String,Integer> dnsExitCodes = new HashMap<>();
         public long totalBytesFreed = 0L;
@@ -68,7 +65,6 @@ public class SystemCleaner {
         return r;
     }
 
-    // ---------------- SAFE CLEANING ----------------
 
     private void cleanWindowsUserCaches(BufferedWriter log, CleanResult r) throws IOException {
         Path temp = Paths.get(System.getProperty("java.io.tmpdir"));
@@ -94,7 +90,6 @@ public class SystemCleaner {
         sweepDirs("Linux $XDG_CACHE_HOME", Collections.singletonList(xdgCache), log, r);
     }
 
-    // ---------------- AGGRESSIVE ----------------
 
     private void aggressiveWindows(BufferedWriter log, CleanResult r) throws IOException {
         execDns(log, r, new String[]{"cmd","/c","ipconfig","/flushdns"}, "DNS flush");
@@ -112,7 +107,6 @@ public class SystemCleaner {
         execLogged(log, new String[]{"bash","-lc","command -v nmcli >/dev/null 2>&1 && nmcli general reload || true"}, "NM reload", null);
     }
 
-    // ---------------- Carpeta helpers ----------------
 
     private void sweepDirs(String label, List<Path> targets, BufferedWriter log, CleanResult r) throws IOException {
         for (Path p : targets) {
@@ -125,12 +119,12 @@ public class SystemCleaner {
                     long freed = Math.max(0, before - after);
 
                     r.totalBytesFreed += freed;
-                    r.events.add(new CleanEvent(label + ": " + p, true, "ok", freed));   // <-- usa CleanEvent
+                    r.events.add(new CleanEvent(label + ": " + p, true, "ok", freed));
 
                     log.write("Limpio: " + p + " | " + humanSize(freed) + " liberados"); log.newLine();
                 }
             } catch (Exception e) {
-                r.events.add(new CleanEvent(label + ": " + p, false, e.getMessage(), -1)); // <--
+                r.events.add(new CleanEvent(label + ": " + p, false, e.getMessage(), -1));
                 log.write("No limpiado: " + p + " -> " + e.getMessage()); log.newLine();
             }
         }
@@ -174,7 +168,6 @@ public class SystemCleaner {
         });
     }
 
-    // ---------------- Comandos ----------------
 
     private void execDns(BufferedWriter log, CleanResult r, String[] cmd, String label) throws IOException {
         int code = execLogged(log, cmd, label, r);
@@ -182,7 +175,7 @@ public class SystemCleaner {
         r.dnsCommandsTried.add(joined);
         r.dnsExitCodes.put(joined, code);
         boolean ok = (code == 0);
-        r.events.add(new CleanEvent(label, ok, ok ? "ok" : "exit " + code, -1));   // <--
+        r.events.add(new CleanEvent(label, ok, ok ? "ok" : "exit " + code, -1));
     }
 
     private int execLogged(BufferedWriter log, String[] cmd, String label, CleanResult r) throws IOException {

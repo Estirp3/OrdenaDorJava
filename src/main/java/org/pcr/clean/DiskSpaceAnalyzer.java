@@ -1,4 +1,3 @@
-// src/main/java/org/pcr/clean/DiskSpaceAnalyzer.java
 package org.pcr.clean;
 
 import java.io.IOException;
@@ -29,7 +28,7 @@ public class DiskSpaceAnalyzer {
 
         @Override
         public int compareTo(FileInfo other) {
-            return Long.compare(other.size, this.size); // Descending
+            return Long.compare(other.size, this.size);
         }
     }
 
@@ -66,11 +65,9 @@ public class DiskSpaceAnalyzer {
                         long size = attrs.size();
                         result.totalSize += size;
 
-                        // Categorize by extension
                         String category = categorizeFile(file);
                         result.sizeByCategory.merge(category, size, Long::sum);
 
-                        // Track large files
                         if (size >= largeFileThreshold) {
                             result.largeFiles.add(new FileInfo(file, size, category));
                         }
@@ -99,7 +96,6 @@ public class DiskSpaceAnalyzer {
             }
         });
 
-        // Sort large files
         Collections.sort(result.largeFiles);
 
         updateProgress("Análisis completado!", 1d);
@@ -123,31 +119,24 @@ public class DiskSpaceAnalyzer {
 
         String ext = fileName.substring(dotIndex + 1);
 
-        // Images
         if (ext.matches("jpg|jpeg|png|gif|bmp|svg|webp|ico"))
             return "Imágenes";
 
-        // Videos
         if (ext.matches("mp4|mkv|avi|mov|wmv|flv|webm"))
             return "Videos";
 
-        // Audio
         if (ext.matches("mp3|wav|flac|aac|ogg|m4a|wma"))
             return "Música";
 
-        // Documents
         if (ext.matches("pdf|doc|docx|xls|xlsx|ppt|pptx|txt|odt|ods"))
             return "Documentos";
 
-        // Archives
         if (ext.matches("zip|rar|7z|tar|gz|bz2"))
             return "Archivos Comprimidos";
 
-        // Executables
         if (ext.matches("exe|msi|bat|sh|cmd|app|deb|rpm"))
             return "Ejecutables";
 
-        // Code
         if (ext.matches("java|py|js|html|css|cpp|c|h|cs|php|rb|go"))
             return "Código";
 
