@@ -6,6 +6,7 @@ import org.pcr.core.FileOrganizer.Result;
 import org.pcr.clean.SystemCleaner;
 import org.pcr.clean.SystemCleaner.CleanResult;
 import org.pcr.report.HtmlReportWriter;
+import org.pcr.gui.MainApp;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -14,6 +15,33 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
+        // Check if console mode is requested
+        boolean consoleMode = false;
+        for (String arg : args) {
+            if ("--console".equals(arg)) {
+                consoleMode = true;
+                break;
+            }
+        }
+
+        if (consoleMode) {
+            runConsoleMode();
+        } else {
+            runGuiMode();
+        }
+    }
+
+    private static void runGuiMode() {
+        try {
+            MainApp.launch();
+        } catch (Exception e) {
+            System.err.println("Error al iniciar la interfaz gráfica: " + e.getMessage());
+            System.err.println("Intenta ejecutar en modo consola con: java -jar <archivo>.jar --console");
+            e.printStackTrace();
+        }
+    }
+
+    private static void runConsoleMode() {
         try (Scanner sc = new Scanner(System.in)) {
 
             Path origen = DownloadDirResolver.getDirectoryFromUser();
@@ -24,7 +52,7 @@ public class Main {
             boolean quiereLimpiar = (opcion == 2 || opcion == 3);
 
             // resultados para el reporte
-            Result orgRes = new Result();            // vacío por defecto
+            Result orgRes = new Result(); // vacío por defecto
             CleanResult cleanRes = new CleanResult();// vacío por defecto
 
             // 1) Organizar (si corresponde)
@@ -42,10 +70,12 @@ public class Main {
 
                 System.out.println("🧹 Limpieza completada. Revisa clean.log en: " + destino);
                 if (agresivo) {
-                    if (System.getProperty("os.name","").toLowerCase().contains("win")) {
-                        System.out.println("ℹ️ Si viste advertencias de permisos, ejecuta la consola como Administrador y repite.");
+                    if (System.getProperty("os.name", "").toLowerCase().contains("win")) {
+                        System.out.println(
+                                "ℹ️ Si viste advertencias de permisos, ejecuta la consola como Administrador y repite.");
                     } else {
-                        System.out.println("ℹ️ Si viste advertencias de permisos, usa: sudo java -jar <tu-jar>.jar");
+                        System.out.println(
+                                "ℹ️ Si viste advertencias de permisos, usa: sudo java -jar <tu-jar>.jar --console");
                     }
                 }
             }
@@ -59,8 +89,7 @@ public class Main {
                     cleanRes.events,
                     cleanRes.dnsCommandsTried,
                     cleanRes.dnsExitCodes,
-                    cleanRes.totalBytesFreed
-            );
+                    cleanRes.totalBytesFreed);
 
             System.out.println("📄 Reporte HTML: " + destino.resolve("reporte.html"));
         } catch (Exception e) {
@@ -80,8 +109,13 @@ public class Main {
 
         String in = sc.nextLine().trim();
         int opt;
-        try { opt = Integer.parseInt(in); } catch (Exception e) { opt = 3; } // por defecto ambos
-        if (opt < 1 || opt > 3) opt = 3;
+        try {
+            opt = Integer.parseInt(in);
+        } catch (Exception e) {
+            opt = 3;
+        } // por defecto ambos
+        if (opt < 1 || opt > 3)
+            opt = 3;
         return opt;
     }
 
