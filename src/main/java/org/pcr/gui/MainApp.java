@@ -6,12 +6,18 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import org.pcr.gui.tabs.*;
+import javafx.scene.image.Image;
 
 public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("OrdenaDor - Organizador y Limpiador de PC");
+        try {
+            primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/images/logo.png")));
+        } catch (Exception e) {
+            System.err.println("Icon load fail: " + e.getMessage());
+        }
 
         MenuBar menuBar = createMenuBar(primaryStage);
 
@@ -21,11 +27,12 @@ public class MainApp extends Application {
         Tab dashboardTab = new Tab("📊 Dashboard", new DashboardTab(tabPane));
         Tab organizerTab = new Tab("📁 Organizador", new FileOrganizerTab());
         Tab cleanerTab = new Tab("🧹 Limpiador Sistema", new SystemCleanerTab());
+        Tab optimizationTab = new Tab("⚡ Optimización Sistema", new OptimizationTab());
         Tab browserTab = new Tab("🌐 Limpiador Navegadores", new BrowserCleanerTab());
         Tab duplicateTab = new Tab("🔍 Archivos Duplicados", new DuplicateFinderTab());
         Tab diskTab = new Tab("💾 Análisis de Disco", new DiskAnalyzerTab());
 
-        tabPane.getTabs().addAll(dashboardTab, organizerTab, cleanerTab);
+        tabPane.getTabs().addAll(dashboardTab, organizerTab, cleanerTab, optimizationTab);
         if (isWindows()) {
             Tab startupTab = new Tab("🚀 Optimización Inicio", new StartupManagerTab());
             tabPane.getTabs().add(startupTab);
@@ -110,7 +117,8 @@ public class MainApp extends Application {
         sb.append("JAVA_HOME: ").append(javaHome == null ? "(no definido)" : javaHome).append("\n\n");
         sb.append("Instrucciones:\n");
         if (isWindows()) {
-            sb.append("- Windows: el JAR sombreado ya incluye dependencias. Si algo falla, instala Java 17+ y JavaFX:\n");
+            sb.append(
+                    "- Windows: el JAR sombreado ya incluye dependencias. Si algo falla, instala Java 17+ y JavaFX:\n");
             sb.append("  winget install EclipseAdoptium.Temurin.17.JDK\n");
             sb.append("  winget install OpenJFX\n");
         } else if (isMac()) {
@@ -118,12 +126,14 @@ public class MainApp extends Application {
             sb.append("  brew install openjdk@17\n");
             sb.append("  brew install openjfx\n");
             sb.append("  Ejecuta con:\n");
-            sb.append("  java --module-path /opt/homebrew/opt/openjfx/lib --add-modules javafx.controls,javafx.fxml -jar target/OrdenDeArchivos-1.0-jar-with-dependencies.jar\n");
+            sb.append(
+                    "  java --module-path /opt/homebrew/opt/openjfx/lib --add-modules javafx.controls,javafx.fxml -jar target/OrdenDeArchivos-1.0-jar-with-dependencies.jar\n");
         } else if (isLinux()) {
             sb.append("- Linux: instala Java 17 y JavaFX del repo o SDKMAN. Ejemplo Ubuntu/Debian:\n");
             sb.append("  sudo apt-get install openjdk-17-jdk openjfx\n");
             sb.append("  Ejecuta con:\n");
-            sb.append("  java --module-path /usr/share/openjfx/lib --add-modules javafx.controls,javafx.fxml -jar target/OrdenDeArchivos-1.0-jar-with-dependencies.jar\n");
+            sb.append(
+                    "  java --module-path /usr/share/openjfx/lib --add-modules javafx.controls,javafx.fxml -jar target/OrdenDeArchivos-1.0-jar-with-dependencies.jar\n");
         } else {
             sb.append("- Plataforma no reconocida: asegúrate de tener Java 17+ y JavaFX nativo.\n");
         }

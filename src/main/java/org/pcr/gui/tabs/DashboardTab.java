@@ -11,6 +11,8 @@ import javafx.scene.layout.FlowPane;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class DashboardTab extends VBox {
 
@@ -32,6 +34,22 @@ public class DashboardTab extends VBox {
                 titleLabel.setFont(Font.font("System", FontWeight.BOLD, 24));
                 titleLabel.setStyle("-fx-text-fill: linear-gradient(to right, #18c29c, #3b82f6);");
 
+                // --- LOGO INTEGRATION ---
+                ImageView logoView = null;
+                try {
+                        // Cargar logo desde resources
+                        Image logoImg = new Image(
+                                        getClass().getResourceAsStream("/images/logo.png"));
+                        logoView = new ImageView(logoImg);
+                        logoView.setPreserveRatio(true);
+                        logoView.setFitHeight(120); // Ajustar altura
+                        logoView.setFitWidth(500); // Max width
+                        // Truco para quitar fondo blanco si existe: MULTIPLY
+                        logoView.setBlendMode(javafx.scene.effect.BlendMode.MULTIPLY);
+                } catch (Exception e) {
+                        System.out.println("Logo no encontrado: " + e.getMessage());
+                }
+
                 kpiRow = createKpiRow();
 
                 Label tip = new Label("Tip: usa el lanzador rápido para abrir módulos o ejecutar acciones guiadas.");
@@ -40,6 +58,9 @@ public class DashboardTab extends VBox {
                 quickActionsPane = createQuickActions();
                 VBox logCard = createLogCard();
 
+                if (logoView != null) {
+                        getChildren().add(logoView);
+                }
                 getChildren().addAll(titleLabel, kpiRow, tip, quickActionsPane, logCard);
 
                 widthProperty().addListener((obs, oldV, newV) -> {

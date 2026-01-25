@@ -12,7 +12,8 @@ Aplicación de escritorio con GUI (JavaFX) para ordenar tus archivos, limpiar ba
 
 ## ⚙️ Cómo ejecutarlo (por sistema operativo)
 - **Windows**: `java -jar target\OrdenDeArchivos-1.0-jar-with-dependencies.jar` o `ejecutar-gui.bat`. Para instalar Java 17: `winget install EclipseAdoptium.Temurin.17.JDK`. El tab de Optimización de Inicio solo aparece en Windows.
-- **macOS**: instala Java 17 y OpenJFX (`brew install openjdk@17 openjfx`). Ejecuta con:  
+- **macOS**: instala Java 17 y OpenJFX (`brew install openjdk@17 openjfx`).
+ Ejecuta con:  
   `java --module-path /opt/homebrew/opt/openjfx/lib --add-modules javafx.controls,javafx.fxml -jar target/OrdenDeArchivos-1.0-jar-with-dependencies.jar`
 - **Linux (Debian/Ubuntu)**: `sudo apt-get install openjdk-17-jdk openjfx` y luego:  
   `java --module-path /usr/share/openjfx/lib --add-modules javafx.controls,javafx.fxml -jar target/OrdenDeArchivos-1.0-jar-with-dependencies.jar`
